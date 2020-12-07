@@ -835,7 +835,13 @@ func (jm *Controller) updateJobStatus(job *batch.Job) error {
 		if err != nil {
 			break
 		}
+		// prevent StartTime be set multiple times
+		startTime := newJob.Status.StartTime
 		newJob.Status = job.Status
+		if startTime != nil && !startTime.Equal(job.Status.StartTime) {
+			// use the original startTime
+			newJob.Status.StartTime = startTime
+		}
 		if _, err = jobClient.UpdateStatus(context.TODO(), newJob, metav1.UpdateOptions{}); err == nil {
 			break
 		}
