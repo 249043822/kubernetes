@@ -238,6 +238,10 @@ func (rc *reconciler) mountAttachVolumes() {
 				}
 			}
 		} else if !volMounted || cache.IsRemountRequiredError(err) {
+			if !rc.desiredStateOfWorld.PodExistsInVolume(volumeToMount.PodName, volumeToMount.VolumeName) {
+				klog.V(4).InfoS(volumeToMount.GenerateMsgDetailed("Skipping operationExecutor.MountVolume because pod was removed from desired state", ""), "pod", klog.KObj(volumeToMount.Pod))
+				continue
+			}
 			// Volume is not mounted, or is already mounted, but requires remounting
 			remountingLogStr := ""
 			isRemount := cache.IsRemountRequiredError(err)
